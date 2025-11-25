@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "726180819086",
+    "project_id": "app-mobile-mei",
+    "storage_bucket": "app-mobile-mei.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:726180819086:android:4c710d59d3f39da85659df",
+        "android_client_info": {
+          "package_name": "com.example.app_mobile_mei"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBm1oy2TjAkUO-dzcgs3yDmPyzmlolNqfY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
