@@ -16,46 +16,44 @@ class _SignUpPageState extends State<SignUpPage> {
   bool loading = false;
 
   Future<void> registerUser() async {
-  setState(() => loading = true);
+    setState(() => loading = true);
 
-  try {
-    // Buat akun di Firebase Auth
-    UserCredential userCredential =
-    await FirebaseAuth.instance.createUserWithEmailAndPassword(
-      email: emailController.text.trim(),
-      password: passwordController.text.trim(),
-    );
+    try {
+      // Buat akun di Firebase Auth
+      UserCredential userCredential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(
+            email: emailController.text.trim(),
+            password: passwordController.text.trim(),
+          );
 
-    // Simpan ke Firestore
-    await FirebaseFirestore.instance
-        .collection("users")
-        .doc(userCredential.user!.uid)
-        .set({
-      "email": emailController.text.trim(),
-      "role": "user",
-    });
+      // Simpan ke Firestore
+      await FirebaseFirestore.instance
+          .collection("users")
+          .doc(userCredential.user!.uid)
+          .set({"email": emailController.text.trim(), "role": "user"});
 
-    // CEK apakah widget masih hidup
+      // CEK apakah widget masih hidup
+      if (!mounted) return;
+
+      // Sukses → pindah ke Login
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Pendaftaran sukses, silakan login!")),
+      );
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginPage()),
+      );
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.message.toString())));
+    }
+
     if (!mounted) return;
-
-    // Sukses → pindah ke Login
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Pendaftaran sukses, silakan login!")),
-    );
-
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const LoginPage()),
-    );
-  } on FirebaseAuthException catch (e) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(e.message.toString())));
+    setState(() => loading = false);
   }
-
-  if (!mounted) return;
-  setState(() => loading = false);
-}
 
   @override
   Widget build(BuildContext context) {
@@ -70,10 +68,7 @@ class _SignUpPageState extends State<SignUpPage> {
                 const SizedBox(height: 40),
                 const Text(
                   "Sign Up",
-                  style: TextStyle(
-                    fontSize: 34,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 34, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 40),
 
@@ -88,8 +83,10 @@ class _SignUpPageState extends State<SignUpPage> {
                       borderRadius: BorderRadius.circular(14),
                     ),
                     focusedBorder: OutlineInputBorder(
-                      borderSide:
-                      const BorderSide(color: Color(0xFFFFA855), width: 2),
+                      borderSide: const BorderSide(
+                        color: Color(0xFFFFA855),
+                        width: 2,
+                      ),
                       borderRadius: BorderRadius.circular(14),
                     ),
                   ),
@@ -108,8 +105,10 @@ class _SignUpPageState extends State<SignUpPage> {
                       borderRadius: BorderRadius.circular(14),
                     ),
                     focusedBorder: OutlineInputBorder(
-                      borderSide:
-                      const BorderSide(color: Color(0xFFFFA855), width: 2),
+                      borderSide: const BorderSide(
+                        color: Color(0xFFFFA855),
+                        width: 2,
+                      ),
                       borderRadius: BorderRadius.circular(14),
                     ),
                   ),
@@ -129,10 +128,12 @@ class _SignUpPageState extends State<SignUpPage> {
                   child: loading
                       ? const CircularProgressIndicator(color: Colors.white)
                       : const Text(
-                    "Daftar",
-                    style: TextStyle(
-                        fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
+                          "Daftar",
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
                 const SizedBox(height: 12),
 
@@ -145,7 +146,8 @@ class _SignUpPageState extends State<SignUpPage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => const LoginPage()),
+                            builder: (context) => const LoginPage(),
+                          ),
                         );
                       },
                       child: const Text(
