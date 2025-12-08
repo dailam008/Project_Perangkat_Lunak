@@ -15,6 +15,10 @@ dependencies:
   firebase_auth: ^6.1.2
   cloud_firestore: ^6.1.0
 
+  url_launcher: ^6.2.0
+
+cupertino_icons: ^1.0.8
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -26,5 +30,7 @@ flutter:
   assets:
     - assets/images/logo.png    
     - assets/images/kalung-nobg 1.png
+    - assets/images/Kalung Biofir Warna.jpg
     - assets/images/kalungmasbrili_rev 1.png
-
+    - assets/images/kalung_bokir.jpg
+    - assets/images/kemasan-Biofir.jpg
