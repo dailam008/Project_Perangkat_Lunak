@@ -15,7 +15,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
   final _nameController = TextEditingController();
   final _priceController = TextEditingController();
   final _descController = TextEditingController();
-  final _imageController = TextEditingController(); 
+  final _imageController = TextEditingController(); // Untuk menampung URL Gambar
   final _stockController = TextEditingController();
 
   // URL placeholder default jika admin tidak memasukkan gambar
@@ -185,9 +185,13 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   hintText: 'Cth: https://i.imgur.com/example.png',
                 ),
               ),
-
+              // Contoh Tombol Simulasi Upload (opsional)
+              // Note: Implementasi penuh memerlukan paket file_picker & firebase_storage
               TextButton.icon(
                 onPressed: () {
+                  // Di sini seharusnya ada logika untuk membuka gallery/camera,
+                  // lalu upload ke Firebase Storage, dan
+                  // hasil URL-nya dimasukkan ke _imageController.text
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Fitur Upload File memerlukan Firebase Storage.')),
                   );
