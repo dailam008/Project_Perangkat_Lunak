@@ -6,13 +6,16 @@ class ProdukPage extends StatelessWidget {
   const ProdukPage({super.key});
 
   // Fungsi untuk menyimpan produk ke koleksi 'keranjang' di Firestore
-  Future<void> _addToCart(BuildContext context, Map<String, dynamic> productData) async {
+  Future<void> _addToCart(
+    BuildContext context,
+    Map<String, dynamic> productData,
+  ) async {
     try {
       await FirebaseFirestore.instance.collection('keranjang').add({
         'name': productData['name'] ?? 'Produk Tanpa Nama',
         'price': productData['price'] ?? 0,
         'imageUrl': productData['imageUrl'] ?? 'https://via.placeholder.com/50',
-        'qty': 1, 
+        'qty': 1,
         'addedAt': FieldValue.serverTimestamp(),
       });
 
@@ -71,7 +74,11 @@ class ProdukPage extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.shopping_bag_outlined, size: 80, color: Colors.grey),
+                  Icon(
+                    Icons.shopping_bag_outlined,
+                    size: 80,
+                    color: Colors.grey,
+                  ),
                   SizedBox(height: 16),
                   Text(
                     'Belum ada produk tersedia',
@@ -94,7 +101,8 @@ class ProdukPage extends StatelessWidget {
             itemBuilder: (context, index) {
               var doc = snapshot.data!.docs[index];
               var data = doc.data() as Map<String, dynamic>;
-              data['productId'] = doc.id; // Tambahkan ID dokumen untuk referensi
+              data['productId'] =
+                  doc.id; // Tambahkan ID dokumen untuk referensi
 
               return Card(
                 elevation: 3,
@@ -109,7 +117,6 @@ class ProdukPage extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-
                       // Gambar Produk
                       ClipRRect(
                         borderRadius: const BorderRadius.vertical(
@@ -234,10 +241,7 @@ class ProdukPage extends StatelessWidget {
                 const SizedBox(height: 8),
                 Text(
                   'Stok: ${data['stock'] ?? 0}',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                 ),
                 const SizedBox(height: 16),
                 const Divider(),
@@ -245,10 +249,7 @@ class ProdukPage extends StatelessWidget {
                 // Deskripsi
                 const Text(
                   'Deskripsi',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -274,7 +275,10 @@ class ProdukPage extends StatelessWidget {
                     icon: const Icon(Icons.shopping_cart),
                     label: const Text(
                       'Tambah ke Keranjang',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
