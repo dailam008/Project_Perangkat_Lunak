@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'profile_admin_page.dart'; // TAMBAHAN IMPORT INI
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
@@ -185,13 +186,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   hintText: 'Cth: https://i.imgur.com/example.png',
                 ),
               ),
-              // Contoh Tombol Simulasi Upload (opsional)
-              // Note: Implementasi penuh memerlukan paket file_picker & firebase_storage
               TextButton.icon(
                 onPressed: () {
-                  // Di sini seharusnya ada logika untuk membuka gallery/camera,
-                  // lalu upload ke Firebase Storage, dan
-                  // hasil URL-nya dimasukkan ke _imageController.text
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Fitur Upload File memerlukan Firebase Storage.')),
                   );
@@ -236,6 +232,17 @@ class _AdminDashboardState extends State<AdminDashboard> {
       appBar: AppBar(
         title: const Text("Admin Dashboard"),
         backgroundColor: const Color(0xFFFFA855),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.person),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProfileAdminPage()),
+              );
+            },
+          ),
+        ],
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: _firestore.collection('products').orderBy('createdAt', descending: true).snapshots(),
