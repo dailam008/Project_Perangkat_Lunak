@@ -2,28 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'keranjang_page.dart';
 import 'produk_page.dart';
+// import 'checkout_membership_page.dart'; // <<< FILE INI DIHAPUS SEPERTI PERMINTAAN
 
 // ====================================================================
-// 1. CUSTOMER SERVICE CHAT PAGE
+// 1. CUSTOMER SERVICE CHAT PAGE (FINAL)
 // ====================================================================
 class CustomerServiceChatPage extends StatefulWidget {
   const CustomerServiceChatPage({super.key});
 
   @override
-  State<CustomerServiceChatPage> createState() =>
-      _CustomerServiceChatPageState();
+  State<CustomerServiceChatPage> createState() => _CustomerServiceChatPageState();
 }
 
 class _CustomerServiceChatPageState extends State<CustomerServiceChatPage> {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
-  // Data simulasi pesan chat (TELAH DIPERBAIKI: HANYA PESAN SELAMAT DATANG DARI CS)
+  // Data simulasi pesan chat (HANYA PESAN SELAMAT DATANG DARI CS)
   final List<Map<String, String>> _messages = [
     {
       "sender": "CS",
-      "text":
-          "Selamat datang di Layanan Bantuan Biofir. Ada yang bisa kami bantu hari ini? Silakan sampaikan keluhan atau pertanyaan Anda.",
+      "text": "Selamat datang di Layanan Bantuan Biofir. Ada yang bisa kami bantu hari ini? Silakan sampaikan keluhan atau pertanyaan Anda.",
     },
   ];
 
@@ -70,11 +69,7 @@ class _CustomerServiceChatPageState extends State<CustomerServiceChatPage> {
     Future.delayed(const Duration(seconds: 1), () {
       setState(() {
         // Balasan bot yang lebih umum
-        _messages.add({
-          "sender": "CS",
-          "text":
-              "Terima kasih atas pesan Anda. Mohon tunggu sebentar, CS kami sedang memproses pertanyaan Anda.",
-        });
+        _messages.add({"sender": "CS", "text": "Terima kasih atas pesan Anda. Mohon tunggu sebentar, CS kami sedang memproses pertanyaan Anda."});
       });
       _scrollToBottom();
     });
@@ -109,9 +104,7 @@ class _CustomerServiceChatPageState extends State<CustomerServiceChatPage> {
           const Divider(height: 1.0),
           Container(
             // Padding bawah untuk menangani keyboard yang muncul
-            padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).viewInsets.bottom,
-            ),
+            padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
             decoration: BoxDecoration(color: Theme.of(context).cardColor),
             child: _buildTextComposer(),
           ),
@@ -127,25 +120,23 @@ class _CustomerServiceChatPageState extends State<CustomerServiceChatPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
         // Batas maksimal lebar bubble chat
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.75,
-        ),
+        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
         decoration: BoxDecoration(
-          color: isUser ? const Color(0xFFFFA855) : const Color(0xFFFCE9DD),
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(16),
-            topRight: const Radius.circular(16),
-            // Sudut lancip di sisi pengirim
-            bottomLeft: Radius.circular(isUser ? 16 : 4),
-            bottomRight: Radius.circular(isUser ? 4 : 16),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 13), // Opacity 0.05
-              blurRadius: 3,
-              offset: const Offset(1, 2),
+            color: isUser ? const Color(0xFFFFA855) : const Color(0xFFFCE9DD),
+            borderRadius: BorderRadius.only(
+              topLeft: const Radius.circular(16),
+              topRight: const Radius.circular(16),
+              // Sudut lancip di sisi pengirim
+              bottomLeft: Radius.circular(isUser ? 16 : 4),
+              bottomRight: Radius.circular(isUser ? 4 : 16),
             ),
-          ],
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 13), // Opacity 0.05
+                blurRadius: 3,
+                offset: const Offset(1, 2),
+              ),
+            ]
         ),
         child: Text(
           text,
@@ -162,9 +153,9 @@ class _CustomerServiceChatPageState extends State<CustomerServiceChatPage> {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: const Color(0xFFFFA855), width: 1.5),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(30),
+          border: Border.all(color: const Color(0xFFFFA855), width: 1.5)
       ),
       child: Row(
         children: <Widget>[
@@ -201,7 +192,225 @@ class _CustomerServiceChatPageState extends State<CustomerServiceChatPage> {
 }
 
 // ====================================================================
-// 2. USER DASHBOARD
+// 2. MEMBERSHIP PAGE (MODIFIED FOR WHATSAPP REDIRECT)
+// ====================================================================
+class MembershipPage extends StatelessWidget {
+  const MembershipPage({super.key});
+
+  // FUNGSI BARU: Untuk meluncurkan link WhatsApp
+  Future<void> _launchWhatsApp(String packageName) async {
+    // Ganti dengan nomor WhatsApp yang Anda berikan
+    const phoneNumber = '6289618418569';
+    final message = 'Halo, saya tertarik dengan Paket $packageName Membership Biofir. Mohon informasi lebih lanjut untuk pembelian dan pembayaran.';
+
+    // URL-encode the message
+    final encodedMessage = Uri.encodeComponent(message);
+
+    // Construct the WhatsApp link
+    final url = 'https://wa.me/$phoneNumber?text=$encodedMessage';
+    final Uri uri = Uri.parse(url);
+
+    // Meluncurkan URL di aplikasi eksternal (WhatsApp)
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      // Jika gagal meluncurkan URL
+      throw Exception('Tidak dapat meluncurkan $url');
+    }
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Membership Biofir"),
+        backgroundColor: const Color(0xFFFFA855),
+        elevation: 0,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Tingkatkan Kebugaran Anda dengan Paket Membership Eksklusif!",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            _buildMembershipCard(
+              context,
+              title: "Paket Muscle",
+              subtitle: "Kebugaran Dasar & Vitalitas",
+              price: "Rp 250.000 / Tahun",
+              color: Colors.green.shade700,
+              icon: Icons.fitness_center,
+              benefits: [
+                "Diskon Produk 5% (Berlaku Selamanya)",
+                "Garansi Produk Standar (1 Tahun)",
+                "Akses ke Tips Kebugaran Mingguan",
+                "Newsletter Eksklusif Biofir",
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            _buildMembershipCard(
+              context,
+              title: "Paket Black",
+              subtitle: "Premium Kesehatan & Jangka Panjang",
+              price: "Rp 750.000 / Tahun",
+              color: Colors.grey.shade900,
+              icon: Icons.diamond_outlined,
+              benefits: [
+                "Diskon Produk 15% (Berlaku Selamanya)",
+                "Garansi Produk Diperpanjang (3 Tahun)",
+                "Prioritas Layanan CS 24/7",
+                "Pre-Order Produk Baru Biofir",
+                "Akses ke Webinar Kesehatan Bulanan",
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            _buildMembershipCard(
+              context,
+              title: "Paket VIP",
+              subtitle: "Eksklusif & Dukungan Penuh (Top Tier)",
+              price: "Rp 2.000.000 / Tahun",
+              color: const Color(0xFFFFA855),
+              icon: Icons.workspace_premium,
+              isRecommended: true,
+              benefits: [
+                "Diskon Produk 30% (Berlaku Selamanya)",
+                "Garansi Produk SEUMUR HIDUP",
+                "Manager CS Pribadi & Dedikasi Cepat",
+                "Undangan Acara Eksklusif (Gathering)",
+                "Voucher Ulang Tahun Senilai Rp 200.000",
+              ],
+            ),
+            const SizedBox(height: 40),
+            Center(
+              child: Text(
+                "Pilih paket yang sesuai dengan kebutuhan kesehatan dan kebugaran Anda!",
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey.shade600),
+              ),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMembershipCard(
+      BuildContext context, {
+        required String title,
+        required String subtitle,
+        required String price,
+        required Color color,
+        required IconData icon,
+        required List<String> benefits,
+        bool isRecommended = false,
+      }) {
+    return Card(
+      elevation: 8,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+        side: isRecommended
+            ? BorderSide(color: color, width: 4)
+            : BorderSide.none,
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w900,
+                        color: color,
+                      ),
+                    ),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey.shade600,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
+                ),
+                Icon(icon, size: 40, color: color),
+              ],
+            ),
+            const Divider(height: 20, thickness: 1),
+            Text(
+              price,
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+            const SizedBox(height: 15),
+            ...benefits.map((benefit) => Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.check_circle, size: 18, color: color),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      benefit,
+                      style: const TextStyle(fontSize: 15, height: 1.3),
+                    ),
+                  ),
+                ],
+              ),
+            )),
+            const SizedBox(height: 20),
+            Center(
+              child: ElevatedButton(
+                // PERUBAHAN DI SINI: Memanggil WhatsApp Launcher
+                onPressed: () {
+                  _launchWhatsApp(title);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: color,
+                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                ),
+                child: const Text(
+                  "PILIH PAKET",
+                  style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ====================================================================
+// 3. USER DASHBOARD (MODIFIKASI NAVIGASI)
 // ====================================================================
 class UserDashboard extends StatelessWidget {
   const UserDashboard({super.key});
@@ -237,7 +446,11 @@ class UserDashboard extends StatelessWidget {
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFFFFA855), Color(0xFFFCE9DD), Colors.white],
+            colors: [
+              Color(0xFFFFA855),
+              Color(0xFFFCE9DD),
+              Colors.white,
+            ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             stops: [0.0, 0.15, 0.4],
@@ -250,6 +463,7 @@ class UserDashboard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+
                   // HEADER
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -294,9 +508,7 @@ class UserDashboard extends StatelessWidget {
                           // NAVIGASI KE PRODUK PAGE
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
-                              builder: (context) => const ProdukPage(),
-                            ),
+                            MaterialPageRoute(builder: (context) => const ProdukPage()),
                           );
                         },
                       ),
@@ -307,10 +519,7 @@ class UserDashboard extends StatelessWidget {
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const CustomerServiceChatPage(),
-                            ),
+                            MaterialPageRoute(builder: (context) => const CustomerServiceChatPage()),
                           );
                         },
                       ),
@@ -321,11 +530,15 @@ class UserDashboard extends StatelessWidget {
                           // Aksi untuk Testimoni
                         },
                       ),
+                      // NAVIGASI KE MEMBERSHIP PAGE
                       _buildMenuItem(
                         icon: Icons.card_membership_outlined,
                         label: "Membership",
                         onTap: () {
-                          // Aksi untuk Membership
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const MembershipPage()),
+                          );
                         },
                       ),
                     ],
@@ -346,19 +559,19 @@ class UserDashboard extends StatelessWidget {
 
                   _buildArticle(
                     "🌱 Biofir: Teknologi terbaru yang memanfaatkan energi alami FIR "
-                    "untuk menjaga kebugaran tubuh sehari-hari.",
+                        "untuk menjaga kebugaran tubuh sehari-hari.",
                   ),
                   const SizedBox(height: 12),
 
                   _buildArticle(
                     "💡 Tahukah Anda? Far Infrared (FIR) dapat membantu "
-                    "melancarkan aliran darah & meningkatkan vitalitas.",
+                        "melancarkan aliran darah & meningkatkan vitalitas.",
                   ),
                   const SizedBox(height: 12),
 
                   _buildArticle(
                     "🔥 Produk Biofir terus dikembangkan untuk kenyamanan "
-                    "dan dukungan kesehatan aktivitas harian.",
+                        "dan dukungan kesehatan aktivitas harian.",
                   ),
 
                   const SizedBox(height: 30),
@@ -376,7 +589,7 @@ class UserDashboard extends StatelessWidget {
 
                   _buildArticle(
                     "✨ Gunakan gelang/kalung Biofir setiap hari untuk membantu "
-                    "menjaga peredaran darah tetap optimal.",
+                        "menjaga peredaran darah tetap optimal.",
                   ),
                   const SizedBox(height: 12),
 
@@ -411,26 +624,22 @@ class UserDashboard extends StatelessWidget {
                         children: [
                           _buildNewsCard(
                             image: "assets/images/kalung_bokir.jpg",
-                            title:
-                                "Kalung Biofir Makin Diminati Warga Pekanbaru",
-                            url:
-                                "https://www.riauinfo.com/kalung-biofir-makin-diminati-warga-pekanbaru/",
+                            title: "Kalung Biofir Makin Diminati Warga Pekanbaru",
+                            url: "https://www.riauinfo.com/kalung-biofir-makin-diminati-warga-pekanbaru/",
                           ),
                           const SizedBox(width: 15),
 
                           _buildNewsCard(
                             image: "assets/images/kemasan-Biofir.jpg",
                             title: "Biofir untuk kesehatan & kualitas hidup",
-                            url:
-                                "https://daengbattala.com/2011/06/22/jaga-kesehatan-dan-kualitas-hidup-dengan-biofir/",
+                            url: "https://daengbattala.com/2011/06/22/jaga-kesehatan-dan-kualitas-hidup-dengan-biofir/",
                           ),
                           const SizedBox(width: 15),
 
                           _buildNewsCard(
                             image: "assets/images/Kalung Biofir Warna.jpg",
                             title: "Kalung Kesehatan Biofir Warna",
-                            url:
-                                "https://biofirindonesia.blogspot.com/2011/10/kalung-biofir-warna-fancy-color-dan-manfaat.html",
+                            url: "https://biofirindonesia.blogspot.com/2011/10/kalung-biofir-warna-fancy-color-dan-manfaat.html",
                           ),
                         ],
                       ),
@@ -544,12 +753,7 @@ class UserDashboard extends StatelessWidget {
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) => Container(
                   color: Colors.grey[200],
-                  child: const Center(
-                    child: Text(
-                      "Gagal Load Gambar",
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                  ),
+                  child: const Center(child: Text("Gagal Load Gambar", style: TextStyle(color: Colors.grey))),
                 ),
               ),
 
@@ -588,7 +792,10 @@ class UserDashboard extends StatelessWidget {
                     const SizedBox(height: 4),
                     const Text(
                       "Swipe untuk lihat berita lainnya",
-                      style: TextStyle(fontSize: 11, color: Colors.white70),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.white70,
+                      ),
                     ),
                   ],
                 ),
