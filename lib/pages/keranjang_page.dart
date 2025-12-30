@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'checkout_page.dart';
 
 class KeranjangPage extends StatelessWidget {
   const KeranjangPage({super.key});
 
   Future<void> _deleteItem(String docId) async {
     try {
-      await FirebaseFirestore.instance
-          .collection('keranjang')
-          .doc(docId)
-          .delete();
+      await FirebaseFirestore.instance.collection('keranjang').doc(docId).delete();
     } catch (e) {
       debugPrint('Gagal menghapus item: $e');
     }
@@ -41,16 +39,9 @@ class KeranjangPage extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.shopping_cart_outlined,
-                    size: 80,
-                    color: Colors.grey,
-                  ),
+                  Icon(Icons.shopping_cart_outlined, size: 80, color: Colors.grey),
                   SizedBox(height: 16),
-                  Text(
-                    "Keranjang kosong",
-                    style: TextStyle(fontSize: 18, color: Colors.grey),
-                  ),
+                  Text("Keranjang kosong", style: TextStyle(fontSize: 18, color: Colors.grey)),
                 ],
               ),
             );
@@ -93,17 +84,13 @@ class KeranjangPage extends StatelessWidget {
                             height: 60,
                             fit: BoxFit.cover,
                             errorBuilder: (ctx, err, stack) => Container(
-                              width: 60,
-                              height: 60,
-                              color: Colors.grey[300],
+                              width: 60, height: 60, color: Colors.grey[300],
                               child: const Icon(Icons.image),
                             ),
                           ),
                         ),
                         title: Text(data['name'] ?? '-'),
-                        subtitle: Text(
-                          'Rp ${(data['price'] ?? 0).toStringAsFixed(0)}',
-                        ),
+                        subtitle: Text('Rp ${(data['price'] ?? 0).toStringAsFixed(0)}'),
                         trailing: IconButton(
                           icon: const Icon(Icons.delete, color: Colors.red),
                           onPressed: () => _deleteItem(doc.id),
@@ -114,7 +101,6 @@ class KeranjangPage extends StatelessWidget {
                 ),
               ),
 
-              // TOTAL HARGA SAJA (TANPA TOMBOL CHECKOUT)
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
@@ -127,22 +113,45 @@ class KeranjangPage extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: Column(
                   children: [
-                    const Text(
-                      "Total:",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text("Total:", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        Text(
+                          "Rp ${totalPrice.toStringAsFixed(0)}",
+                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFFFFA855)),
+                        ),
+                      ],
                     ),
-                    Text(
-                      "Rp ${totalPrice.toStringAsFixed(0)}",
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFFFFA855),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        // LOGIKA TOMBOL:
+                        // Jika totalPrice > 0, jalankan navigasi.
+                        // Jika 0, tombol mati (null).
+                        onPressed: totalPrice > 0 ? () {
+                          debugPrint("Tombol Checkout Ditekan!"); // Cek di console
+
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => CheckoutPage(totalPrice: totalPrice),
+                            ),
+                          );
+                        } : null,
+
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFFFA855),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        child: const Text(
+                          "Checkout Sekarang",
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
                       ),
                     ),
                   ],
