@@ -1,11 +1,296 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'keranjang_page.dart';
 import 'produk_page.dart';
-// import 'checkout_membership_page.dart'; // <<< FILE INI DIHAPUS SEPERTI PERMINTAAN
 
 // ====================================================================
-// 1. CUSTOMER SERVICE CHAT PAGE (FINAL)
+// 1. TESTIMONI PAGE
+// ====================================================================
+class TestimoniPage extends StatefulWidget {
+  const TestimoniPage({super.key});
+
+  @override
+  State<TestimoniPage> createState() => _TestimoniPageState();
+}
+
+class _TestimoniPageState extends State<TestimoniPage> {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Testimoni Pelanggan"),
+        backgroundColor: const Color(0xFFFFA855),
+      ),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: _firestore
+            .collection('testimonials')
+            .orderBy('createdAt', descending: true)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.rate_review_outlined, size: 80, color: Colors.grey[400]),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Belum ada testimoni',
+                    style: TextStyle(fontSize: 18, color: Colors.grey),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: snapshot.data!.docs.length,
+            itemBuilder: (context, index) {
+              var doc = snapshot.data!.docs[index];
+              var data = doc.data() as Map<String, dynamic>;
+
+              return Card(
+                margin: const EdgeInsets.only(bottom: 16),
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              data['userName'] ?? 'Anonymous',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: List.generate(5, (i) {
+                              return Icon(
+                                i < (data['rating']?.toDouble() ?? 0) ? Icons.star : Icons.star_border,
+                                color: Colors.amber,
+                                size: 18,
+                              );
+                            }),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+
+                      Text(
+                        data['review'] ?? '',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          height: 1.4,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const TambahTestimoniPage()),
+          );
+        },
+        backgroundColor: const Color(0xFFFFA855),
+        icon: const Icon(Icons.add),
+        label: const Text('Kirim Testimoni'),
+      ),
+    );
+  }
+}
+
+class TambahTestimoniPage extends StatefulWidget {
+  const TambahTestimoniPage({super.key});
+
+  @override
+  State<TambahTestimoniPage> createState() => _TambahTestimoniPageState();
+}
+
+class _TambahTestimoniPageState extends State<TambahTestimoniPage> {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final _formKey = GlobalKey<FormState>();
+
+  final _nameController = TextEditingController();
+  final _reviewController = TextEditingController();
+
+  double _rating = 5.0;
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _reviewController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submitTestimoni(BuildContext context) async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await _firestore.collection('testimonials').add({
+        'userName': _nameController.text,
+        'rating': _rating,
+        'review': _reviewController.text,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      if (!context.mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Testimoni berhasil dikirim!')),
+      );
+      Navigator.pop(context);
+    } catch (e) {
+      if (!context.mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Kirim Testimoni Anda'),
+        backgroundColor: const Color(0xFFFFA855),
+      ),
+      body: Form(
+        key: _formKey,
+        child: ListView(
+          padding: const EdgeInsets.all(20),
+          children: [
+            const Text(
+              'Bagikan pengalaman Anda!',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
+
+            TextFormField(
+              controller: _nameController,
+              decoration: InputDecoration(
+                labelText: 'Nama Anda *',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                prefixIcon: const Icon(Icons.person),
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) return 'Nama wajib diisi';
+                return null;
+              },
+            ),
+            const SizedBox(height: 20),
+
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Rating *',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: List.generate(5, (index) {
+                    return IconButton(
+                      icon: Icon(
+                        index < _rating ? Icons.star : Icons.star_border,
+                        color: Colors.amber,
+                        size: 36,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _rating = index + 1.0;
+                        });
+                      },
+                    );
+                  }),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            TextFormField(
+              controller: _reviewController,
+              maxLines: 5,
+              decoration: InputDecoration(
+                labelText: 'Tulis Review Anda *',
+                hintText: 'Ceritakan pengalaman Anda...',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                alignLabelWithHint: true,
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) return 'Review wajib diisi';
+                if (value.length < 10) return 'Review minimal 10 karakter';
+                return null;
+              },
+            ),
+            const SizedBox(height: 24),
+
+            SizedBox(
+              height: 50,
+              child: ElevatedButton(
+                onPressed: _isLoading ? null : () => _submitTestimoni(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFFA855),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: _isLoading
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text(
+                  'KIRIM TESTIMONI',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ====================================================================
+// 2. CUSTOMER SERVICE CHAT PAGE
 // ====================================================================
 class CustomerServiceChatPage extends StatefulWidget {
   const CustomerServiceChatPage({super.key});
@@ -18,7 +303,6 @@ class _CustomerServiceChatPageState extends State<CustomerServiceChatPage> {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
-  // Data simulasi pesan chat (HANYA PESAN SELAMAT DATANG DARI CS)
   final List<Map<String, String>> _messages = [
     {
       "sender": "CS",
@@ -29,7 +313,6 @@ class _CustomerServiceChatPageState extends State<CustomerServiceChatPage> {
   @override
   void initState() {
     super.initState();
-    // Memastikan scroll ke bawah segera setelah widget dibuat
     _scrollToBottom();
   }
 
@@ -40,7 +323,6 @@ class _CustomerServiceChatPageState extends State<CustomerServiceChatPage> {
     super.dispose();
   }
 
-  // Fungsi untuk scroll ke pesan terbaru
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
@@ -56,19 +338,15 @@ class _CustomerServiceChatPageState extends State<CustomerServiceChatPage> {
   void _handleSubmitted(String text) {
     if (text.trim().isEmpty) return;
 
-    // Tambahkan pesan pengguna ke daftar
     setState(() {
       _messages.add({"sender": "User", "text": text});
     });
 
-    // Hapus teks dari input setelah dikirim
     _controller.clear();
     _scrollToBottom();
 
-    // Simulasi balasan CS (opsional: tambahkan delay)
     Future.delayed(const Duration(seconds: 1), () {
       setState(() {
-        // Balasan bot yang lebih umum
         _messages.add({"sender": "CS", "text": "Terima kasih atas pesan Anda. Mohon tunggu sebentar, CS kami sedang memproses pertanyaan Anda."});
       });
       _scrollToBottom();
@@ -77,7 +355,6 @@ class _CustomerServiceChatPageState extends State<CustomerServiceChatPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Scaffold di wrap dengan SafeArea agar chat tidak tertutup notch atau area aman lainnya
     return Scaffold(
       appBar: AppBar(
         title: const Text("CS Chat (Layanan Bantuan)"),
@@ -86,12 +363,10 @@ class _CustomerServiceChatPageState extends State<CustomerServiceChatPage> {
       ),
       body: Column(
         children: [
-          // Daftar Pesan
           Expanded(
             child: ListView.builder(
               controller: _scrollController,
               padding: const EdgeInsets.all(12.0),
-              // Pesan baru muncul di bawah
               itemCount: _messages.length,
               itemBuilder: (context, index) {
                 final message = _messages[index];
@@ -100,10 +375,8 @@ class _CustomerServiceChatPageState extends State<CustomerServiceChatPage> {
               },
             ),
           ),
-          // Input Teks
           const Divider(height: 1.0),
           Container(
-            // Padding bawah untuk menangani keyboard yang muncul
             padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
             decoration: BoxDecoration(color: Theme.of(context).cardColor),
             child: _buildTextComposer(),
@@ -119,20 +392,18 @@ class _CustomerServiceChatPageState extends State<CustomerServiceChatPage> {
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
-        // Batas maksimal lebar bubble chat
         constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
         decoration: BoxDecoration(
             color: isUser ? const Color(0xFFFFA855) : const Color(0xFFFCE9DD),
             borderRadius: BorderRadius.only(
               topLeft: const Radius.circular(16),
               topRight: const Radius.circular(16),
-              // Sudut lancip di sisi pengirim
               bottomLeft: Radius.circular(isUser ? 16 : 4),
               bottomRight: Radius.circular(isUser ? 4 : 16),
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 13), // Opacity 0.05
+                color: Colors.black.withValues(alpha: 13),
                 blurRadius: 3,
                 offset: const Offset(1, 2),
               ),
@@ -176,7 +447,6 @@ class _CustomerServiceChatPageState extends State<CustomerServiceChatPage> {
             margin: const EdgeInsets.only(right: 4.0),
             child: IconButton(
               icon: const Icon(Icons.send, color: Colors.white),
-              // Tambahkan warna latar belakang untuk tombol kirim
               style: IconButton.styleFrom(
                 backgroundColor: const Color(0xFFFFA855),
                 shape: const CircleBorder(),
@@ -192,31 +462,22 @@ class _CustomerServiceChatPageState extends State<CustomerServiceChatPage> {
 }
 
 // ====================================================================
-// 2. MEMBERSHIP PAGE (MODIFIED FOR WHATSAPP REDIRECT)
+// 3. MEMBERSHIP PAGE
 // ====================================================================
 class MembershipPage extends StatelessWidget {
   const MembershipPage({super.key});
 
-  // FUNGSI BARU: Untuk meluncurkan link WhatsApp
   Future<void> _launchWhatsApp(String packageName) async {
-    // Ganti dengan nomor WhatsApp yang Anda berikan
     const phoneNumber = '6289618418569';
     final message = 'Halo, saya tertarik dengan Paket $packageName Membership Biofir. Mohon informasi lebih lanjut untuk pembelian dan pembayaran.';
-
-    // URL-encode the message
     final encodedMessage = Uri.encodeComponent(message);
-
-    // Construct the WhatsApp link
     final url = 'https://wa.me/$phoneNumber?text=$encodedMessage';
     final Uri uri = Uri.parse(url);
 
-    // Meluncurkan URL di aplikasi eksternal (WhatsApp)
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      // Jika gagal meluncurkan URL
       throw Exception('Tidak dapat meluncurkan $url');
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -387,7 +648,6 @@ class MembershipPage extends StatelessWidget {
             const SizedBox(height: 20),
             Center(
               child: ElevatedButton(
-                // PERUBAHAN DI SINI: Memanggil WhatsApp Launcher
                 onPressed: () {
                   _launchWhatsApp(title);
                 },
@@ -410,16 +670,14 @@ class MembershipPage extends StatelessWidget {
 }
 
 // ====================================================================
-// 3. USER DASHBOARD (MODIFIKASI NAVIGASI)
+// 4. USER DASHBOARD
 // ====================================================================
 class UserDashboard extends StatelessWidget {
   const UserDashboard({super.key});
 
   Future<void> _launchURL(String url) async {
     final Uri uri = Uri.parse(url);
-    // Menggunakan LaunchMode.externalApplication untuk membuka link di browser/aplikasi eksternal
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      // Jika gagal meluncurkan URL (walaupun jarang terjadi)
       throw Exception('Could not launch $url');
     }
   }
@@ -429,7 +687,6 @@ class UserDashboard extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
 
-      // BUBBLE KERANJANG
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(
@@ -463,8 +720,6 @@ class UserDashboard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-
-                  // HEADER
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -483,9 +738,7 @@ class UserDashboard extends StatelessWidget {
                         ),
                         child: IconButton(
                           icon: const Icon(Icons.person, color: Colors.black),
-                          onPressed: () {
-                            // Aksi untuk profil
-                          },
+                          onPressed: () {},
                         ),
                       ),
                     ],
@@ -493,7 +746,6 @@ class UserDashboard extends StatelessWidget {
 
                   const SizedBox(height: 30),
 
-                  // MENU GRID
                   GridView.count(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
@@ -505,14 +757,12 @@ class UserDashboard extends StatelessWidget {
                         icon: Icons.shopping_bag_outlined,
                         label: "Produk",
                         onTap: () {
-                          // NAVIGASI KE PRODUK PAGE
                           Navigator.push(
                             context,
                             MaterialPageRoute(builder: (context) => const ProdukPage()),
                           );
                         },
                       ),
-                      // NAVIGASI KE CHAT IN-APP BARU
                       _buildMenuItem(
                         icon: Icons.support_agent_outlined,
                         label: "CS Chat",
@@ -527,10 +777,12 @@ class UserDashboard extends StatelessWidget {
                         icon: Icons.people_outline,
                         label: "Testimoni",
                         onTap: () {
-                          // Aksi untuk Testimoni
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const TestimoniPage()),
+                          );
                         },
                       ),
-                      // NAVIGASI KE MEMBERSHIP PAGE
                       _buildMenuItem(
                         icon: Icons.card_membership_outlined,
                         label: "Membership",
@@ -546,7 +798,6 @@ class UserDashboard extends StatelessWidget {
 
                   const SizedBox(height: 30),
 
-                  // ARTIKEL
                   const Text(
                     "Artikel",
                     style: TextStyle(
@@ -576,7 +827,6 @@ class UserDashboard extends StatelessWidget {
 
                   const SizedBox(height: 30),
 
-                  // TIPS KESEHATAN
                   const Text(
                     "Tips Kesehatan",
                     style: TextStyle(
@@ -604,7 +854,6 @@ class UserDashboard extends StatelessWidget {
 
                   const SizedBox(height: 40),
 
-                  // BERITA TERKINI
                   const Text(
                     "Berita Terkini",
                     style: TextStyle(
@@ -656,33 +905,31 @@ class UserDashboard extends StatelessWidget {
     );
   }
 
-  // ARTICLE CARD
   Widget _buildArticle(String text) {
     return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 26),
-            blurRadius: 5,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(
-          fontSize: 15,
-          height: 1.4,
-          color: Colors.black87,
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 26),
+              blurRadius: 5,
+              offset: const Offset(0, 3),
+            ),
+          ],
         ),
-      ),
+        child: Text(
+            text,
+            style: const TextStyle(
+              fontSize: 15,
+              height: 1.4,
+              color: Colors.black87,
+            ),
+        ),
     );
   }
 
-  // MENU ITEM
   Widget _buildMenuItem({
     required IconData icon,
     required String label,
@@ -716,7 +963,6 @@ class UserDashboard extends StatelessWidget {
     );
   }
 
-  // NEWS CARD
   Widget _buildNewsCard({
     required String image,
     required String title,
@@ -729,7 +975,6 @@ class UserDashboard extends StatelessWidget {
       child: Container(
         width: 280,
         height: 180,
-        margin: const EdgeInsets.only(right: 15),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
@@ -745,7 +990,6 @@ class UserDashboard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           child: Stack(
             children: [
-              // Menggunakan Image.asset (pastikan path assets sudah benar di proyek Anda)
               Image.asset(
                 image,
                 width: double.infinity,
@@ -753,11 +997,9 @@ class UserDashboard extends StatelessWidget {
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) => Container(
                   color: Colors.grey[200],
-                  child: const Center(child: Text("Gagal Load Gambar", style: TextStyle(color: Colors.grey))),
+                  child: const Center(child: Text("Gagal Load Gambar")),
                 ),
               ),
-
-              // FIXED OPACITY GRADIENT
               Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -770,8 +1012,6 @@ class UserDashboard extends StatelessWidget {
                   ),
                 ),
               ),
-
-              // TEXT
               Positioned(
                 bottom: 15,
                 left: 15,
